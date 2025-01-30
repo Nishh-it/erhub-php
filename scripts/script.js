@@ -147,34 +147,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to load cart items or show "Nothing to see here"
     function loadCartItems() {
-        $.ajax({
-            url: 'cart.php?fetch_cart=true',
-            method: 'GET',
-            dataType: 'json',
-            success: function(cart) {
-                $('#cart-items').html('');
-    
-                if (cart.length > 0) {
-                    cart.forEach(item => {
-                        $('#cart-items').append(`
-                            <div class="cart-item">
-                            <img src="${item.image_url}" alt="${item.name}" class="cart-product-image">
+    $.ajax({
+        url: 'cart.php?fetch_cart=true',
+        method: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            $('#cart-items').html('');
+
+            if (response.cart_items.length > 0) {
+                let totalCartValue = response.cart_total;
+
+                response.cart_items.forEach(item => {
+                    $('#cart-items').append(`
+                        <div class="cart-item">
+                            <img src="${item.image_url}" alt="${item.name}" class="cart-item-image">
                             <div class="cart-item-details">
                                 <p>${item.name} - ${item.dates}</p>
-                                <p>Price: ₹${item.price_per_day}</p>
+                                <p>Price per day: ₹${item.price_per_day}</p>
+                                <p>Total Rent: ₹${item.rent}</p>
                             </div>
                         </div>
-                        `);
-                    });
-                } else {
-                    $('#cart-items').html('<p>Nothing to see here</p>');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error("Cart Fetch Error:", xhr.responseText);
+                    `);
+                });
+
+                $('#cart-items').append(`<p class="cart-total">Total Cart Value: ₹${totalCartValue}</p>`);
+            } else {
+                $('#cart-items').html('<p>Nothing to see here</p>');
             }
-        });
-    }    
+        },
+        error: function(xhr, status, error) {
+            console.error("Cart Fetch Error:", xhr.responseText);
+        }
+    });
+}
 
     // Function to add item to cart
     function addToCart(productId, dates) {

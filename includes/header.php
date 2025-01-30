@@ -556,8 +556,8 @@ footer {
     border-bottom: 1px solid #ddd;
 }
 
-.cart-product-image {
-    width: 60px;
+.cart-item-image {
+    width: 90px;
     height: 60px;
     object-fit: cover;
     border-radius: 5px;
@@ -568,7 +568,10 @@ footer {
     flex: 1;
 }
 
-
+.cart-total {
+    font-weight: bold;
+    margin-top: 10px;
+}
 </style>
 
 </head>

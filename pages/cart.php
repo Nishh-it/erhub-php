@@ -52,27 +52,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['fetch_cart'])) {
     $cart_items = $_SESSION['cart'];
     $response = [];
 
+    $cart_total = 0; // Initialize cart total
+
     foreach ($cart_items as $item) {
         $product_id = intval($item['product_id']);
+        $dates = explode(" - ", $item['dates']); // Split start and end dates
         
+        if (count($dates) == 2) {
+            $start_date = strtotime($dates[0]);
+            $end_date = strtotime($dates[1]);
+            $days = ($end_date - $start_date) / (60 * 60 * 24); // Convert seconds to days
+        } else {
+            $days = 1; // Default to 1 day if date format is incorrect
+        }
+    
         $stmt = $conn->prepare("SELECT name, price_per_day, image_url FROM products WHERE id = ? LIMIT 1");
         $stmt->bind_param("i", $product_id);
         $stmt->execute();
         $result = $stmt->get_result();
-
+    
         if ($row = $result->fetch_assoc()) {
+            $rent = $row['price_per_day'] * $days; // Calculate rent
+            $cart_total += $rent; // Add rent to total cart value
+    
             $response[] = [
                 'product_id' => $product_id,
                 'name' => $row['name'],
                 'price_per_day' => $row['price_per_day'],
                 'dates' => $item['dates'],
-                'image_url' => $row['image_url'] 
+                'image_url' => $row['image_url'],
+                'rent' => $rent // Add calculated rent
             ];
         }
     }
-
-    echo json_encode($response);
-    exit;
+    
+    // Include total cart value in response
+    echo json_encode(['cart_items' => $response, 'cart_total' => $cart_total]);
+    exit;    
 }
 
 ?>
