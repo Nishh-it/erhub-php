@@ -362,35 +362,12 @@ if (!$result) {
     $('#add-to-cart').click(function() {
     var selectedDates = $('#date-range').val();
     var productId = <?php echo json_encode($product_id); ?>;
-
-    
-    $.ajax({
-        url: 'cart.php',
-        method: 'POST',
-        data: {
-            product_id: productId,
-            dates: selectedDates
-        },
-        dataType: 'json',  // Ensure JSON response handling
-        success: function(response) {
-            if (response.status === 'success') {
-                alert('Product added to cart!');
-                updateCartCount();
-            } else {
-                alert(response.message);
-            }
-            $('#date-picker-overlay').fadeOut();
-        },
-        error: function(xhr, status, error) {
-            console.error("AJAX Error:", xhr.responseText);
-            alert('There was an error processing your request.');
-        }
-    });
+    addToCart(productId, selectedDates); // Call the function from script.js
 });
 
 });
 
     </script>
-     <script src="../scripts/script.js"></script>
+    <script src="../scripts/script.js"></script>
 </body>
 </html>

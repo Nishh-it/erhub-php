@@ -1,0 +1,7 @@
+{
+    "name": "nishh/erhub", 
+    "description": "A short description of your project",
+    "require": {
+        "razorpay/razorpay": "^2.9"
+    }
+}
