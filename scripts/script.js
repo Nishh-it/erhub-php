@@ -18,35 +18,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeCart = document.getElementById("close-cart");
     const checkoutBtn = document.getElementById("checkout-btn");
     
-        if (checkoutBtn) {
-            checkoutBtn.addEventListener("click", function () {
-                let cart = JSON.parse(sessionStorage.getItem("cart")) || [];
+    if (checkoutBtn) {
+        checkoutBtn.addEventListener("click", function () {
+            let cart = JSON.parse(sessionStorage.getItem("cart")) || [];
     
-                if (cart.length === 0) {
-                    alert("Your cart is empty!");
-                    return;
+            if (!cart || cart.length === 0) {
+                if (!document.getElementById("empty-cart-alert")) {
+                    let alertDiv = document.createElement("div");
+                    alertDiv.id = "empty-cart-alert";
+                    alertDiv.textContent = "Your cart is empty!";
+                    alertDiv.style.color = "red";
+                    document.body.appendChild(alertDiv);
                 }
+                return;
+            }
     
-                fetch("checkout.php", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ cart: cart }),
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        alert("Checkout failed: " + data.error);
-                    } else {
-                        openRazorpayPayment(data);
-                    }
-                })
-                .catch(error => {
-                    console.error("Error during checkout:", error);
-                });
+            fetch("checkout.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ cart: cart }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert("Checkout failed: " + data.error);
+                } else {
+                    openRazorpayPayment(data);
+                }
+            })
+            .catch(error => {
+                console.error("Error during checkout:", error);
             });
-        }
+        });
+    }
+    
     
     function openRazorpayPayment(orderData) {
         var options = {
@@ -228,32 +235,52 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-     
+   
 });
 
     // Function to add item to cart
-function addToCart(productId, selectedDates) {
-    $.ajax({
-        url: 'cart.php',
-        method: 'POST',
-        data: {
-            product_id: productId,
-            dates: selectedDates
-        },
-        dataType: 'json',
-        success: function(response) {
-            if (response.status === 'success') {
-                alert('Product added to cart!');
-                updateCartCount();
-            } else {
-                alert(response.message);
-            }
-            $('#date-picker-overlay').fadeOut();
-        },
-        error: function(xhr, status, error) {
-            console.error("AJAX Error:", xhr.responseText);
-            alert('There was an error processing your request.');
-        }
-    });
-}
 
+    function addToCart(productId, selectedDates) {
+        $.ajax({
+            url: 'cart.php',
+            method: 'POST',
+            data: {
+                product_id: productId,
+                dates: selectedDates
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    alert('Product added to cart!');
+                    
+                    // Fetch current cart from sessionStorage
+                    let cart = JSON.parse(sessionStorage.getItem("cart")) || [];
+                    
+                    // Add new item to cart
+                    cart.push({ product_id: productId, dates: selectedDates });
+                    
+                    // Update sessionStorage
+                    sessionStorage.setItem("cart", JSON.stringify(cart));
+                    
+                    // Update UI cart count
+                    updateCartCount();
+                } else {
+                    alert(response.message);
+                }
+                $('#date-picker-overlay').fadeOut();
+            },
+            error: function(xhr, status, error) {
+                console.error("AJAX Error:", xhr.responseText);
+                alert('There was an error processing your request.');
+            }
+        });
+    }
+    
+
+function updateCartCount() {
+    let cart = JSON.parse(sessionStorage.getItem("cart")) || [];
+    let cartCountElement = document.getElementById("cart-count");
+    if (cartCountElement) {
+        cartCountElement.textContent = cart.length;
+    }
+}

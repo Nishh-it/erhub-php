@@ -363,7 +363,7 @@ if (!$result) {
     var selectedDates = $('#date-range').val();
     var productId = <?php echo json_encode($product_id); ?>;
     addToCart(productId, selectedDates); // Call the function from script.js
-});
+    });
 
 });
 
