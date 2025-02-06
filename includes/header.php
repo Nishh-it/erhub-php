@@ -579,8 +579,11 @@ footer {
     <header>
     <nav class="navbar">
     <div class="logo">
-            <h2>Logo</h2>
-        </div>
+    <a href="index.php">
+        <img src="assets/images/logo.jpg" alt="Logo" class="nav-logo">
+    </a>
+</div>
+
 
         <!-- Search Bar in the Center -->
         <div class="search-bar">

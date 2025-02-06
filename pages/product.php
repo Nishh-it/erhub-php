@@ -330,7 +330,7 @@ if (!$result) {
     <?php include '../includes/footer.php'; ?>
 
     <script>
- $(document).ready(function() {
+$(document).ready(function() {
     $('#select-dates-btn').click(function() {
         $('#date-picker-overlay').fadeIn();
     });
@@ -352,22 +352,23 @@ if (!$result) {
 
     // Change the Close button to Add to Cart button after selecting dates
     $('#date-range').on('apply.daterangepicker', function(ev, picker) {
-    $('#close-overlay').hide(); 
-    $('#add-to-cart').show();  
-    $('#selected-dates').text("Selected dates: " + picker.startDate.format('YYYY-MM-DD') + " to " + picker.endDate.format('YYYY-MM-DD'));
+        $('#close-overlay').hide(); 
+        $('#add-to-cart').show();  
+        $('#selected-dates').text("Selected dates: " + picker.startDate.format('YYYY-MM-DD') + " to " + picker.endDate.format('YYYY-MM-DD'));
     });
-
 
     // Handle Add to Cart button click
     $('#add-to-cart').click(function() {
-    var selectedDates = $('#date-range').val();
-    var productId = <?php echo json_encode($product_id); ?>;
-    addToCart(productId, selectedDates); // Call the function from script.js
+        var selectedDates = $('#date-range').val();
+        var productId = <?php echo json_encode($product_id); ?>;
+        addToCart(productId, selectedDates); // Call the function from script.js
+        $('#date-picker-overlay').fadeOut();
     });
 
 });
 
-    </script>
+</script>
+
     <script src="../scripts/script.js"></script>
 </body>
 </html>

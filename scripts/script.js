@@ -1,4 +1,7 @@
+let isCartLoading = false;
 document.addEventListener('DOMContentLoaded', () => {
+    updateCartCount(); // Update cart count when page loads
+
     // Get elements
     const loginBtn = document.getElementById('loginBtn');
     const closePopup = document.getElementById('close-login');
@@ -17,11 +20,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const cartButton = document.querySelector(".cart img");
     const closeCart = document.getElementById("close-cart");
     const checkoutBtn = document.getElementById("checkout-btn");
-    
+
     if (checkoutBtn) {
         checkoutBtn.addEventListener("click", function () {
-            let cart = JSON.parse(sessionStorage.getItem("cart")) || [];
-    
+            let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
             if (!cart || cart.length === 0) {
                 if (!document.getElementById("empty-cart-alert")) {
                     let alertDiv = document.createElement("div");
@@ -32,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 return;
             }
-    
+
             fetch("checkout.php", {
                 method: "POST",
                 headers: {
@@ -53,8 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-    
-    
+
     function openRazorpayPayment(orderData) {
         var options = {
             "key": orderData.key,
@@ -71,11 +73,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 "color": "#3399cc"
             }
         };
-    
+
         var rzp1 = new Razorpay(options);
         rzp1.open();
     }
-    
+
     // Open cart overlay
     cartButton.addEventListener("click", () => {
         cartOverlay.style.display = "flex";
@@ -145,142 +147,190 @@ document.addEventListener('DOMContentLoaded', () => {
         registerForm.style.display = formType === 'register' ? "block" : "none";
         forgotForm.style.display = formType === 'forgot' ? "block" : "none";
     }
-
-    // AJAX Login Handling
-    loginFormCon.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const formData = new FormData(loginFormCon);
-        fetch('../pages/login.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert(data.message);
-            if (data.status === 'success') {
-                window.location.href = '../pages/index.php';
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    });
-
-    // Handle registration form submission via AJAX
-    registerForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const registerData = new FormData(registerForm);
-        fetch('../pages/register.php', {
-            method: 'POST',
-            body: registerData
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert(data.message);
-            if (data.status === 'success') {
-                toggleForms('login');
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    });
-
-    // Handle forgot password form submission via AJAX
-    forgotForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const forgotData = new FormData(forgotForm);
-        fetch('../pages/forgot.php', {
-            method: 'POST',
-            body: forgotData
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert(data.message);
-            if (data.status === 'success') {
-                toggleForms('login');
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    });
-
-    // Function to load cart items or show "Nothing to see here"
-    function loadCartItems() {
-        $.ajax({
-            url: 'cart.php?fetch_cart=true',
-            method: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                $('#cart-items').html('');
-
-                if (response.cart_items.length > 0) {
-                    let totalCartValue = response.cart_total;
-
-                    response.cart_items.forEach(item => {
-                        $('#cart-items').append(`
-                            <div class="cart-item">
-                                <img src="${item.image_url}" alt="${item.name}" class="cart-item-image">
-                                <div class="cart-item-details">
-                                    <p>${item.name} - ${item.dates}</p>
-                                    <p>Price per day: ₹${item.price_per_day}</p>
-                                    <p>Total Rent: ₹${item.rent}</p>
-                                </div>
-                            </div>
-                        `);
-                    });
-
-                    $('#cart-items').append(`<p class="cart-total">Total Cart Value: ₹${totalCartValue}</p>`);
-                } else {
-                    $('#cart-items').html('<p>Nothing to see here</p>');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error("Cart Fetch Error:", xhr.responseText);
-            }
-        });
-    }
-   
 });
 
-    // Function to add item to cart
+// AJAX Login Handling
+loginFormCon.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(loginFormCon);
+    fetch('../pages/login.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        if (data.status === 'success') {
+            window.location.href = '../pages/index.php';
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
 
-    function addToCart(productId, selectedDates) {
-        $.ajax({
-            url: 'cart.php',
-            method: 'POST',
-            data: {
-                product_id: productId,
-                dates: selectedDates
-            },
-            dataType: 'json',
-            success: function(response) {
-                if (response.status === 'success') {
-                    alert('Product added to cart!');
-                    
-                    // Fetch current cart from sessionStorage
-                    let cart = JSON.parse(sessionStorage.getItem("cart")) || [];
-                    
-                    // Add new item to cart
-                    cart.push({ product_id: productId, dates: selectedDates });
-                    
-                    // Update sessionStorage
-                    sessionStorage.setItem("cart", JSON.stringify(cart));
-                    
-                    // Update UI cart count
-                    updateCartCount();
-                } else {
-                    alert(response.message);
-                }
-                $('#date-picker-overlay').fadeOut();
-            },
-            error: function(xhr, status, error) {
-                console.error("AJAX Error:", xhr.responseText);
-                alert('There was an error processing your request.');
-            }
-        });
-    }
-    
+// Handle registration form submission via AJAX
+registerForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const registerData = new FormData(registerForm);
+    fetch('../pages/register.php', {
+        method: 'POST',
+        body: registerData
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        if (data.status === 'success') {
+            toggleForms('login');
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+// Handle forgot password form submission via AJAX
+forgotForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const forgotData = new FormData(forgotForm);
+    fetch('../pages/forgot.php', {
+        method: 'POST',
+        body: forgotData
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        if (data.status === 'success') {
+            toggleForms('login');
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
 
 function updateCartCount() {
-    let cart = JSON.parse(sessionStorage.getItem("cart")) || [];
+    let cart = JSON.parse(localStorage.getItem("cart")) || []; // Get cart from localStorage
     let cartCountElement = document.getElementById("cart-count");
+
     if (cartCountElement) {
-        cartCountElement.textContent = cart.length;
+        cartCountElement.textContent = cart.length; // Update the cart count
     }
 }
+
+
+function loadCartItems() {
+    if (isCartLoading) return; // Prevent multiple calls
+    isCartLoading = true;
+
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    $('#cart-items').html('');
+    console.log("Loading cart items: ", cart);
+
+    if (cart.length > 0) {
+        let totalCartValue = 0;
+        let fetchPromises = [];
+
+        cart.forEach(item => {
+            const productId = item.product_id;
+            const dates = item.dates;
+
+            fetchPromises.push(
+                fetch(`cart.php?fetch_product_details&id=${productId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.product) {
+                            const product = data.product;
+                            const [startDate, endDate] = dates.split(' - ');
+                            const rentDays = (new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24);
+                            const rent = product.price_per_day * rentDays;
+                            totalCartValue += rent;
+
+                            $('#cart-items').append(`
+                                <div class="cart-item">
+                                    <img src="${product.image_url}" alt="${product.name}" class="cart-item-image">
+                                    <div class="cart-item-details">
+                                        <p>${product.name} - ${dates}</p>
+                                        <p>Price per day: ₹${product.price_per_day}</p>
+                                        <p>Total Rent: ₹${rent}</p>
+                                    </div>
+                                    <button class="delete-cart-item" data-product-id="${item.product_id}" data-dates="${dates}">
+                                    <ion-icon name="trash-outline"></ion-icon>
+                                    </button>
+
+                                </div>
+                            `);
+                        }
+                    })
+            );
+        });
+
+        Promise.all(fetchPromises).then(() => {
+            $('#cart-items').append(`<p class="cart-total">Total Cart Value: ₹${totalCartValue}</p>`);
+            isCartLoading = false; // Reset loading flag
+        });
+    } else {
+        $('#cart-items').html('<p>Nothing to see here</p>');
+        isCartLoading = false;
+    }
+    // Global event listener for delete buttons
+document.addEventListener('click', function (e) {
+    const deleteBtn = e.target.closest('.delete-cart-item');
+    if (deleteBtn) {
+        const productId = deleteBtn.getAttribute('data-product-id');
+        const dates = deleteBtn.getAttribute('data-dates');  // Fetch date range
+        removeFromCart(productId, dates);  // Pass both productId and dates
+    }
+});
+
+}
+
+
+// Function to add item to localStorage
+
+function addToCart(productId, selectedDates) {
+    // Check if cart already exists in localStorage
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+    // Check for duplicates
+    const isDuplicate = cart.some(item => item.product_id === productId);
+
+    if (isDuplicate) {
+        alert('This product is already in your cart.');
+        return;
+    }
+
+    // Add the new item to the cart
+    cart.push({ product_id: productId, dates: selectedDates });
+
+    // Save updated cart to localStorage
+    localStorage.setItem('cart', JSON.stringify(cart));
+
+    alert('Product added to cart!');
+}    
+
+// Remove item from the cart
+function removeFromCart(productId, dates) {
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    console.log("Current Cart:", cart);
+
+    // Ensure both productId and dates are consistent for comparison
+    const updatedCart = cart.filter(item => {
+        const isSameProduct = item.product_id.toString() === productId.toString();
+        const isSameDate = (item.dates || "").trim() === (dates || "").trim();
+        return !(isSameProduct && isSameDate);  // Remove only if both match
+    });
+
+    if (cart.length === updatedCart.length) {
+        console.log("Product not found in cart.");
+    } else {
+        console.log("Product removed successfully.");
+    }
+
+    // Update localStorage after removal
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
+
+    // Reload cart items and update count
+    loadCartItems();
+    updateCartCount();
+}
+
+
+
+
+
+
